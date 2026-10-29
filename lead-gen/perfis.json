@@ -1,0 +1,95 @@
+{
+  "ana-climatizacao": {
+    "responsavel": "Ana",
+    "nicho": "Climatização e bombas de calor",
+    "termos": [
+      "climatização",
+      "instalação de ar condicionado",
+      "técnico de ar condicionado",
+      "assistência técnica ar condicionado",
+      "manutenção de ar condicionado",
+      "bombas de calor",
+      "AVAC",
+      "reparação de caldeiras",
+      "aquecimento central"
+    ],
+    "sub_nichos": ["Ar condicionado", "Bombas de calor", "AVAC e climatização industrial", "Aquecimento e águas quentes", "Multisserviços"],
+    "criterios_score": "- Sobe: pedidos de orçamento ou assistência por telefone, WhatsApp ou formulário manual; oferece manutenção periódica ou contratos de manutenção; faz assistência técnica e reparações, não só instalação; trabalha vários equipamentos (ar condicionado, bombas de calor, águas quentes); procura visível (muitas avaliações, obras recentes, campanhas); equipa pequena (2 a 15) em que o dono ainda vai à obra.\n- Desce: já tem orçamentos ou marcações online com seguimento automático; grande empresa ou cadeia nacional; só vende equipamento, sem instalação nem assistência; site abandonado; pouco a ver com climatização.",
+    "tipos_excluir": [
+      "car_repair", "car_dealer", "car_wash", "car_rental", "auto_parts_store", "tire_shop",
+      "lodging", "private_guest_room", "hotel", "guest_house", "hostel", "bed_and_breakfast", "inn", "motel", "extended_stay_hotel",
+      "apartment_building", "apartment_complex", "condominium_complex", "housing_complex",
+      "department_store", "shopping_mall", "real_estate_agency"
+    ],
+    "verificar_sem_site": true,
+    "localidades": [
+      "Porto, Portugal", "Vila Nova de Gaia, Portugal", "Matosinhos, Portugal", "Maia, Portugal", "Gondomar, Portugal",
+      "Valongo, Portugal", "Póvoa de Varzim, Portugal", "Município de Vila do Conde, Portugal", "Município de Trofa, Portugal", { "nome": "Santo Tirso, Portugal", "area_km": 12 },
+      "Município de Paredes, Portugal", "Penafiel, Portugal", "Município de Paços de Ferreira, Portugal", "Lousada, Portugal", "Município de Felgueiras, Portugal",
+      { "nome": "Amarante, Portugal", "area_km": 17 }, { "nome": "Marco de Canaveses, Portugal", "area_km": 15 }, "Baião, Portugal"
+    ],
+    "leads_novos_desejados": 20,
+    "max_pedidos_google": 60,
+    "grelha": 2
+  },
+
+  "bruno-estetica": {
+    "responsavel": "Bruno",
+    "nicho": "Clínica de estética",
+    "termos": [
+      "clínica de estética",
+      "centro de estética",
+      "medicina estética",
+      "depilação laser",
+      "estética avançada",
+      "instituto de beleza",
+      "esteticista"
+    ],
+    "sub_nichos": ["Medicina estética", "Estética não médica", "Depilação laser", "Estética avançada", "Emagrecimento e corpo"],
+    "criterios_score": "",
+    "tipos_excluir": [],
+    "verificar_sem_site": true,
+    "localidades": [
+      "Porto, Portugal", "Vila Nova de Gaia, Portugal", "Matosinhos, Portugal", "Maia, Portugal", "Gondomar, Portugal",
+      "Valongo, Portugal", "Póvoa de Varzim, Portugal", "Município de Vila do Conde, Portugal", "Município de Trofa, Portugal", { "nome": "Santo Tirso, Portugal", "area_km": 12 },
+      "Município de Paredes, Portugal", "Penafiel, Portugal", "Município de Paços de Ferreira, Portugal", "Lousada, Portugal", "Município de Felgueiras, Portugal",
+      { "nome": "Amarante, Portugal", "area_km": 17 }, { "nome": "Marco de Canaveses, Portugal", "area_km": 15 }, "Baião, Portugal"
+    ],
+    "leads_novos_desejados": 20,
+    "max_pedidos_google": 60,
+    "grelha": 2
+  },
+
+  "outreach-remodelacoes": {
+    "responsavel": "Outreach",
+    "nicho": "Remodelações e caixilharia",
+    "termos": [
+      "remodelações",
+      "empresa de remodelações",
+      "remodelação de cozinhas",
+      "remodelação de casas de banho",
+      "caixilharia",
+      "janelas pvc",
+      "janelas alumínio",
+      "substituição de janelas"
+    ],
+    "sub_nichos": ["Remodelação geral", "Cozinhas e casas de banho", "Caixilharia e janelas", "Multisserviços"],
+    "criterios_score": "- Sobe: empresa independente que trabalha por orçamento, com visita ou medição antes (cada orçamento vale milhares de euros e o ciclo de decisão é longo); pedidos de orçamento por telefone, WhatsApp ou formulário manual, sem seguimento automático; presença em plataformas de orçamentos (Zaask, Habitissimo, Fixando); mostra obras feitas ou portefólio; procura visível (muitas avaliações, campanhas); equipa pequena (2 a 15) em que o dono ainda vai à obra; caixilharia com montagem e showroom.\n- Desce: rede ou franchising (Melom, Querido Mudei a Casa Obras, Aqui a tua Remodelação), que têm marketing central; construtora de obra nova ou de grandes empreitadas; grande empresa ou cadeia nacional; só vende material ou móveis, sem obra nem montagem; já tem orçamentos online com seguimento automático; site abandonado; pouco a ver com remodelações ou caixilharia.",
+    "tipos_excluir": [
+      "car_repair", "car_dealer", "car_wash", "car_rental", "auto_parts_store", "tire_shop",
+      "lodging", "private_guest_room", "hotel", "guest_house", "hostel", "bed_and_breakfast", "inn", "motel", "extended_stay_hotel",
+      "apartment_building", "apartment_complex", "condominium_complex", "housing_complex",
+      "department_store", "shopping_mall", "real_estate_agency", "home_improvement_store"
+    ],
+    "verificar_sem_site": true,
+    "localidades": [
+      "Porto, Portugal", "Vila Nova de Gaia, Portugal", "Matosinhos, Portugal", "Maia, Portugal", "Gondomar, Portugal",
+      "Valongo, Portugal", "Póvoa de Varzim, Portugal", "Município de Vila do Conde, Portugal", "Município de Trofa, Portugal", { "nome": "Santo Tirso, Portugal", "area_km": 12 },
+      "Município de Paredes, Portugal", "Penafiel, Portugal", "Município de Paços de Ferreira, Portugal", "Lousada, Portugal", "Município de Felgueiras, Portugal",
+      { "nome": "Amarante, Portugal", "area_km": 17 }, { "nome": "Marco de Canaveses, Portugal", "area_km": 15 }, "Baião, Portugal"
+    ],
+    "leads_novos_desejados": 10,
+    "max_pedidos_google": 30,
+    "grelha": 2
+  }
+}
