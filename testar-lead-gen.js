@@ -47,7 +47,7 @@ function correr(ficheiro, { input = [], json = {}, nos = {} } = {}) {
 }
 
 /* As funções do comum, para testar diretamente. */
-const comum = new Function(COMUM + '\nreturn { hostDe, ehPlataforma, limparUrl, chaveTelefone, normalizarTelefone, emailValido, extrairEmail, extrairTelefone, paginaContactos, markdownParaTexto, mensagemErro, decodificarEntidades, htmlParaTexto };')();
+const comum = new Function(COMUM + '\nreturn { hostDe, ehPlataforma, limparUrl, chaveTelefone, normalizarTelefone, emailValido, extrairEmail, extrairTelefone, paginaContactos, markdownParaTexto, mensagemErro, decodificarEntidades, htmlParaTexto, detetarEntidade, nifColetivoValido };')();
 
 let falhas = 0;
 const ok = (nome, cond, extra = '') => {
@@ -673,6 +673,40 @@ const or4 = correr('12-ler-resposta-claude.js', { json: viaOR('{"no_nicho": fals
 ok('OpenRouter: verificação pelo nome funciona', or4.verificado_nome === true && or4.no_nicho === false);
 const R2 = correr('15-resumo.js', { input: [{ ...or1, _gravar: false, _descartar: false }], nos: { 'Config ativa': { first: { ...cfg, gravar_no_notion: false } } } })[0];
 ok('resumo: usa o custo que a OpenRouter devolve', R2.claude.custo_usd === 0.0107, ver(R2.claude));
+
+/* Prova de sociedade (campo "entidade" do bloco), detetada em código. */
+const LEAD_BC = { nome: 'Clima Beta', website: 'http://www.climabeta-online.com/' };
+const entd = (texto, lead = LEAD_BC) => comum.detetarEntidade(texto, lead);
+ok('NIF: controlo módulo 11 (501234560 sim, 501234567 não; 212345672 é singular)', comum.nifColetivoValido('501234560') && !comum.nifColetivoValido('501234567') && !comum.nifColetivoValido('212345672'));
+let e1 = entd('Instalação e manutenção de ar condicionado. Contactos. © 2024 Clima Beta, Lda. Todos os direitos reservados.');
+ok('forma no rodapé, logo a seguir ao nome do lead', e1 && e1.forma === 'Lda' && e1.nif_coletivo === false && /Clima Beta, Lda\.?$/.test(e1.citacao), ver(e1));
+e1 = entd('Morada: Rua X, 100, Porto. NIF: 501 234 560. Telefone 22 000 0000.');
+ok('NIF válido começado por 5, com rótulo', e1 && e1.forma === null && e1.nif_coletivo === true && /NIF: 501 234 560/.test(e1.citacao), ver(e1));
+ok('NIF começado por 2 (pessoa singular) não conta', entd('Contribuinte n.º 212345672') === null);
+ok('NIF com o dígito de controlo errado não conta', entd('NIF 501234567') === null);
+ok('palavra que só contém "lda" não conta (Ldaclima, Soldado)', entd('Clima Beta Ldaclima e o Soldado') === null);
+ok('site sem nada → sem campo', entd('Bem-vindo à Clima Beta. Fazemos instalações de ar condicionado.') === null);
+ok('NIF sem rótulo nem PT não conta', entd('Ref. de produto 501234560 em stock.') === null);
+e1 = entd('Faturação: PT501234560');
+ok('NIF com prefixo PT conta', e1 && e1.nif_coletivo === true && e1.citacao === 'PT501234560', ver(e1));
+ok('"Desenvolvido por WebAgência, Lda" não conta', entd('© 2024 Clima Beta. Desenvolvido por WebAgência Best, Lda.') === null);
+ok('marca de terceiros com S.A. não conta', entd('Clima Beta trabalha com a Daikin Air Conditioning Portugal, S.A. desde 2010.') === null);
+ok('"garantia limitada" e "contribuir para a sociedade" não contam', entd('Clima Beta oferece garantia limitada e quer contribuir para a sociedade.') === null);
+e1 = entd('Clima Beta Unipessoal Lda — NIPC 501234560');
+ok('Unipessoal Lda: forma Unipessoal, e o NIF logo a seguir entra na mesma citação', e1 && e1.forma === 'Unipessoal' && e1.nif_coletivo === true && /^Clima Beta Unipessoal Lda — NIPC 501234560$/.test(e1.citacao), ver(e1));
+e1 = entd('XY-CLIMA - Ar Condicionado, Lda é uma empresa fundada em 2004.', { nome: 'Xy Clima-ar Condicionado Lda', website: 'http://xyclima.pt' });
+ok('denominação longa com o nome do lead', e1 && e1.forma === 'Lda', ver(e1));
+ok('empresa-mãe não conta: nome só no email e "Grupo X, Lda" (caso real)', entd('Contactos assistencia@tecexemplo.pt Empresa do Grupo Holdexemplo, Lda', { nome: 'TecExemplo', website: 'http://tecexemplo.pt/' }) === null);
+ok('nome do lead longe da forma não conta', entd('A Clima Beta tem uma equipa dedicada à instalação e assistência técnica certificada, Lda') === null);
+const textoCompleto = 'Serviços de climatização. '.repeat(260) + '© 2024 Clima Beta, Lda.';
+const an = correr('09-analisar-website.js', { json: { data: '<p>' + textoCompleto + '</p>' }, nos: { 'Filtrar novos': { item: { ...leadSite, nome: 'Clima Beta', website: 'http://www.climabeta-online.com/' } } } });
+ok('rodapé depois dos 5000 caracteres é detetado (antes do corte para a Claude)', an.site_texto.length === 5000 && !an.site_texto.includes('Lda') && an.entidade && an.entidade.forma === 'Lda', ver(an.entidade));
+const comEnt = correr('12-ler-resposta-claude.js', {
+  json: { ...resposta(JSON.stringify(RESPOSTA)), usage: { input_tokens: 1, output_tokens: 1 } },
+  nos: { 'Analisável?': { item: { ...comSite(SITE), entidade: { forma: 'Lda', nif_coletivo: false, citacao: 'Clima Exemplo, Lda.' } } }, 'Config ativa': { first: CFG } },
+});
+ok('bloco: "entidade" no topo quando há prova', comEnt.factos_email.entidade && comEnt.factos_email.entidade.forma === 'Lda');
+ok('bloco: sem prova, o campo não existe', !('entidade' in FE.factos_email));
 
 /* ---------------------------------------------------------------- */
 console.log('\n10. Preparar para Notion');

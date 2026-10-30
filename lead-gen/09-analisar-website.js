@@ -34,6 +34,8 @@ return {
     email,
     telefone,
     site_texto: texto.slice(0, 5000),
+    // Sobre o texto completo: o rodapé (Lda, NIF) fica depois do corte.
+    entidade: detetarEntidade(texto, lead),
     site_erro: $json.error ? mensagemErro($json.error) : '',
     _segunda_leitura: segunda,
     _segunda_tipo: tipo,

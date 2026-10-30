@@ -8,7 +8,7 @@ const lead = $('Analisar website').item.json;
 const bruto = typeof $json.data === 'string' ? $json.data : '';
 const host = hostDe(lead.website);
 
-let { site_texto, email, telefone } = lead;
+let { site_texto, email, telefone, entidade } = lead;
 
 /* O Jina devolve 200 com um aviso quando o site lhe responde com erro;
    esse texto não é o site. */
@@ -18,6 +18,7 @@ if (!falhou) {
   if (lead._segunda_tipo === 'jina') {
     const t = markdownParaTexto(bruto);
     if (t.length > site_texto.length) site_texto = t.slice(0, 5000);
+    entidade = entidade || detetarEntidade(t, lead);
     email = email || extrairEmail(bruto, t, host);
     telefone = telefone || extrairTelefone(bruto, t);
   } else {
@@ -25,6 +26,7 @@ if (!falhou) {
     email = email || extrairEmail(bruto, t, host);
     telefone = telefone || extrairTelefone(bruto, t);
     site_texto = (site_texto + '\n\n[Página de contactos] ' + t.slice(0, 1500)).slice(0, 6500);
+    entidade = entidade || detetarEntidade(t, lead);
   }
 }
 
@@ -34,6 +36,7 @@ return {
     site_texto,
     email,
     telefone,
+    entidade,
     segunda_leitura: lead._segunda_tipo + (falhou ? ' (falhou)' : ' (ok)'),
   },
 };

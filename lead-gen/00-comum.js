@@ -132,6 +132,104 @@ function htmlParaTexto(html) {
 
 /* O Jina Reader devolve markdown com um cabeçalho (Title/URL Source).
    Fica só o texto: imagens fora, links reduzidos ao texto. */
+/* ---------------------------------------------------------------
+   Prova de sociedade (pessoa coletiva), para o outreach: um lead com
+   email gratuito só recebe a sequência completa se o site provar que é
+   uma sociedade. Detetado em código, no texto do site já lido (antes do
+   corte para a Claude, porque o rodapé fica no fim da página).
+
+   Um falso positivo é o erro grave (uma pessoa singular receberia a
+   sequência sem base legal), por isso:
+   - a forma (Lda, Unipessoal, S.A., "…, Limitada", "Sociedade por
+     Quotas"…) só conta como palavra isolada e logo a seguir a uma
+     palavra distintiva do nome do lead ou do domínio do site; nunca em
+     créditos ("desenvolvido por X, Lda") nem em marcas de terceiros;
+   - o NIF só conta com rótulo (NIF, NIPC, Contribuinte, VAT) ou prefixo
+     PT, 9 dígitos começados por 5 e dígito de controlo válido;
+   - a citação é o excerto literal do texto e prova tudo o que se afirma.
+   --------------------------------------------------------------- */
+const PALAVRAS_GENERICAS = new Set(('clima climatizacao condicionado obras remodelacoes remodelacao construcao construcoes ' +
+  'reparacoes reparacao servicos solucoes engenharia tecnica tecnicas energia energias assistencia manutencao instalacoes ' +
+  'casa casas unipessoal limitada sociedade porto lisboa norte portugal grupo empresa clinica estetica beleza centro ' +
+  'studio estudio caixilharia janelas aquecimento online site www').split(' '));
+const CREDITOS = /desenvolvid|developed|powered|design|criad[oa]s? por|feito por|alojamento|hosting|parceir|distribuidor|representante|marca registada/i;
+const RELACAO = /\b(com|para|por|grupo|trabalha\w*|representa\w*|cliente\w*|fornece\w*|marca\w*|parceir\w*|distribui\w*)\b/;
+const soLetras = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+function palavrasDoLead(lead) {
+  const host = hostDe(lead.website || '');
+  const etiqueta = host ? host.split('.')[0].replace(/-/g, '') : '';
+  const doNome = soLetras(lead.nome).split(/[^a-z0-9]+/);
+  return [...new Set([...doNome, etiqueta])].filter((p) => p.length >= 4 && !PALAVRAS_GENERICAS.has(p));
+}
+
+function nifColetivoValido(digitos) {
+  if (!/^5\d{8}$/.test(digitos)) return false;
+  const d = digitos.split('').map(Number);
+  const r = d.slice(0, 8).reduce((a, x, i) => a + x * (9 - i), 0) % 11;
+  return (r < 2 ? 0 : 11 - r) === d[8];
+}
+
+function nifsColetivos(texto) {
+  const out = [];
+  const re = /(?:\b(?:nif|nipc|contribuinte|vat)\b|n\.?\s?i\.?\s?p\.?\s?c\.?)[^0-9\n]{0,25}?(?:pt\s?)?(\d{3}[ .]?\d{3}[ .]?\d{3})(?!\d)|\bPT\s?(\d{3}[ .]?\d{3}[ .]?\d{3})(?!\d)/gi;
+  let m;
+  while ((m = re.exec(texto))) {
+    const digitos = (m[1] || m[2]).replace(/[ .]/g, '');
+    if (nifColetivoValido(digitos)) out.push({ inicio: m.index, fim: m.index + m[0].length });
+  }
+  return out;
+}
+
+function detetarEntidade(texto, lead) {
+  const t = String(texto || '');
+  if (!t) return null;
+  const palavras = palavrasDoLead(lead || {});
+  const nifs = nifsColetivos(t).filter((n) => !CREDITOS.test(t.slice(Math.max(0, n.inicio - 60), n.inicio)));
+  const FORMAS = [
+    [/(?<![\p{L}\d])unipessoal(?:,?\s+(?:lda\.?|limitada))?(?![\p{L}\d])/giu, 'Unipessoal'],
+    [/(?<![\p{L}\d])sociedade\s+unipessoal(?![\p{L}\d])/giu, 'Unipessoal'],
+    [/(?<![\p{L}\d])(?:lda\.?|l\.da)(?![\p{L}\d])/giu, 'Lda'],
+    [/,\s*limitada(?![\p{L}\d])/giu, 'Lda'],
+    [/(?<![\p{L}\d])sociedade\s+por\s+quotas(?![\p{L}\d])/giu, 'Lda'],
+    [/(?<![\p{L}\d])S\.\s?A\.(?![\p{L}\d])/gu, 'S.A.'],
+    [/(?<![\p{L}\d])sociedade\s+an[oó]nima(?![\p{L}\d])/giu, 'S.A.'],
+  ];
+  let melhor = null;
+  if (palavras.length) {
+    for (const [re, forma] of FORMAS) {
+      let m;
+      while ((m = re.exec(t))) {
+        // O nome do lead tem de vir logo antes da forma, sem "com", "para",
+        // "representa"… pelo meio ("Clima Beta trabalha com a Daikin, S.A." não conta).
+        // Emails e endereços não contam como nome ("geral@tecexemplo.pt Empresa do Grupo X, Lda").
+        const antes = t.slice(Math.max(0, m.index - 45), m.index).replace(/\S+@\S+|https?:\/\/\S+|www\.\S+/gi, ' ');
+        if (CREDITOS.test(t.slice(Math.max(0, m.index - 80), m.index))) continue;
+        const norm = soLetras(antes);
+        const juntas = norm.replace(/[^a-z0-9]/g, '');
+        const p = palavras.find((x) => juntas.includes(x));
+        if (!p) continue;
+        const pos = norm.lastIndexOf(p);
+        const entre = pos >= 0 ? norm.slice(pos + p.length) : norm;
+        if (RELACAO.test(entre)) continue;
+        if (!melhor || m.index < melhor.inicio) melhor = { forma, inicio: m.index, fim: m.index + m[0].length };
+      }
+    }
+  }
+  if (melhor) {
+    // Citação: do princípio da palavra uns 60 caracteres antes até ao fim da forma.
+    let ini = Math.max(0, melhor.inicio - 60);
+    if (ini > 0) ini = t.indexOf(' ', ini) + 1 || ini;
+    let fim = melhor.fim;
+    // Se um NIF válido vier logo a seguir, entra na mesma citação.
+    const nifPerto = nifs.find((n) => n.inicio >= melhor.fim && n.fim - ini <= 160);
+    if (nifPerto) fim = nifPerto.fim;
+    return { forma: melhor.forma, nif_coletivo: !!nifPerto, citacao: t.slice(ini, fim).trim() };
+  }
+  if (nifs.length) return { forma: null, nif_coletivo: true, citacao: t.slice(nifs[0].inicio, nifs[0].fim).trim() };
+  return null;
+}
+
 function markdownParaTexto(md) {
   const s = String(md || '');
   const corpo = s.includes('Markdown Content:') ? s.split('Markdown Content:').slice(1).join(' ') : s;

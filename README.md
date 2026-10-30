@@ -25,7 +25,7 @@ test CRM so production is never edited in place.
 | Search cost | **$0**: ID-only search, paid details only for what's selected |
 | Facts checked against the website | **84%** of the facts the model proposed were found on the site (93 of 111); the rest never reach the CRM |
 | AI cost | ~**$0.02** per lead with a website, ~**$0.0015** without one |
-| Tests | **260** checks, no network, no keys |
+| Tests | **279** checks, no network, no keys |
 | Workflow | **65** nodes, generated from 24 node source files and a profile file |
 
 ## What it does
@@ -46,7 +46,10 @@ test CRM so production is never edited in place.
   sentence that proves it. Code finds that sentence in the text sent to
   the model, after normalizing both sides the same way, and drops facts
   that aren't there, that name a person, or that are just contact
-  details. Only what passed is written, in a JSON block in the CRM page.
+  details. Only what passed is written, in a JSON block in the CRM page,
+  together with proof that the business is a company when the site
+  shows one (a company form next to its name, or a valid company tax
+  number), which the outreach needs for its legal-basis rule.
 - **Runs from profiles.** Each profile holds the owner, niche, search
   terms, scoring rubric and a list of towns; runs rotate through the
   towns on their own. It runs from a form in the editor or on a weekday
@@ -97,7 +100,7 @@ lead-gen/
   *.js                   one file per Code node
 build-lead-gen.js        builds the workflow JSON; --enviar <id> deploys it; --dev builds the test copy
 validar-perfis.js        rejects a broken perfis.json at build time
-testar-lead-gen.js       test bench: 260 checks, no network, no credentials
+testar-lead-gen.js       test bench: 279 checks, no network, no credentials
 docs/CASE-STUDY.md       the full case study
 ```
 

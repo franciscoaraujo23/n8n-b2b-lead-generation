@@ -30,6 +30,7 @@ const factos = {
   descartados: { citacao_nao_existe_no_site: soma('sem_citacao'), nome_de_pessoa: soma('nome_pessoa'), contacto: soma('contacto'), encurtada_sem_prova: soma('encurtada_sem_prova') },
   citacoes_encurtadas: soma('encurtadas'),
   sinais_cortados: soma('sinais_cortados'),
+  leads_com_prova_de_sociedade: itens.filter((i) => i.entidade).length,
 };
 
 /* Custo da Claude nesta execução (preços por milhão de tokens). */
@@ -105,6 +106,7 @@ if (ensaio.length) {
     resumo: String(i.resumo_final || '').slice(0, 400),
     factos: i.factos_email ? i.factos_email.factos.map((x) => `[${x.tipo}] "${x.citacao}"`) : [],
     idioma_site: i.factos_email ? i.factos_email.idioma_site : '',
+    entidade: i.entidade ? `${i.entidade.forma || 'NIF'}${i.entidade.nif_coletivo ? ' + NIF' : ''} ← "${i.entidade.citacao}"` : '',
   }));
 }
 

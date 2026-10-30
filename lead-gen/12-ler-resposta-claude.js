@@ -233,6 +233,8 @@ if (!lido.ok || typeof lido.valor !== 'object' || lido.valor === null) {
 const p = lido.valor;
 const score = Math.round(Number(p.score));
 const { contas, factos_email } = verificarFactos(p.factos_email, String(lead.site_texto || '').trim());
+// Prova de sociedade, detetada em código ao ler o site; sem prova, o campo não existe.
+if (lead.entidade && lead.entidade.citacao) factos_email.entidade = lead.entidade;
 
 /* Sinais: os do site só ficam se o facto ficou ou o canal existe; os
    do Google (rating, avaliações) ficam sempre. Aceita também o formato

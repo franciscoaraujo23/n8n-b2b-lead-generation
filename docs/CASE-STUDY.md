@@ -17,7 +17,7 @@
 | **Destination** | Notion (CRM), via REST API: properties for the sales team, a JSON block in the page body for email outreach |
 | **Persistent state** | n8n Data Tables (search grid, Place ID registry, run lock) |
 | **Operation** | Named run profiles (owner, niche, localities), a form run from the n8n editor, and a weekday schedule |
-| **Engineering** | Workflow-as-code in Node.js, test bench with 260 checks, a development copy wired to a test CRM, deploy and export through the n8n API, version history in Git |
+| **Engineering** | Workflow-as-code in Node.js, test bench with 279 checks, a development copy wired to a test CRM, deploy and export through the n8n API, version history in Git |
 
 > **Context:** I built this for an automation agency in Portugal. Search
 > terms, CRM fields, node names, prompts and code comments are in
@@ -765,7 +765,7 @@ repository holds the Lead Gen source, its build and its tests.
 
 `testar-lead-gen.js` runs each node's JavaScript **outside n8n**,
 recreating the *Code* node environment: `$input`, `$json` and
-`$('Node')` with `.item`, `.first()` and `.all()`. It has **260 checks**,
+`$('Node')` with `.item`, `.first()` and `.all()`. It has **279 checks**,
 many taken straight from real incidents:
 
 - the 126-character email that got a 400 from Notion;
@@ -796,7 +796,7 @@ Google responses can only be proven inside n8n.
 ### 9.4 Change cycle
 
 ```powershell
-node testar-lead-gen.js                          # 260 checks, no network
+node testar-lead-gen.js                          # 279 checks, no network
 node build-lead-gen.js --dev --enviar <dev-id>   # development copy, test CRM
 #   dry runs in the copy, then approval
 node build-lead-gen.js --enviar <workflow-id>    # production
@@ -1139,6 +1139,36 @@ Applying that rule to the whole block gave version 2:
 The version number lets the consumer reject anything it doesn't know.
 Before switching to version 2, I checked that no version 1 block existed
 in production.
+
+### Proof of legal entity
+
+The outreach applies a legal-basis rule: a lead whose address is a free
+webmail account gets the full email sequence only if it is a company,
+not a private person; otherwise it gets the first email only. So the
+block gained an optional `entidade` field: proof, from the website,
+that the business is a company.
+
+It is detected in code, never by the model, and on the **full** website
+text, before it is cut for the model, because the footer (where the
+legal name and tax number usually are) is at the end of the page. Here
+a false positive is the costly error, so the rules lean strict:
+
+- a company form (Lda, Unipessoal, S.A., ", Limitada", "Sociedade por
+  Quotas"…) counts only as a separate word and right after the lead's
+  own name; credits ("developed by X, Lda"), third-party brands
+  ("works with Brand, S.A.") and parent groups don't count;
+- a tax number counts only with a label (NIF, NIPC, VAT) or a "PT"
+  prefix, nine digits starting with 5 (companies) and a valid check
+  digit, so phone numbers and product codes can't pass;
+- the field carries the literal excerpt, and everything it claims is
+  inside that excerpt; with no proof, the field doesn't exist.
+
+On 30 real websites, 9 got a proof (6 from the company form, 3 from the
+tax number). The first pass had one false positive: a footer saying
+"<lead>@… Company of the <Parent> Group, Lda", where the lead's name
+only appeared inside an email address. I now ignore emails and URLs when
+looking for the name, treat "group" as a relation word, and re-ran the
+detection on the same 30 sites: only that case changed.
 
 ### Results
 
