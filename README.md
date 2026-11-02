@@ -76,7 +76,9 @@ flowchart LR
 
 ## Documentation
 
-The full case study is in [docs/CASE-STUDY.md](docs/CASE-STUDY.md):
+A shorter case study is published at
+[franciscoaraujo.eu/projetos/lead-generation](https://franciscoaraujo.eu/projetos/lead-generation/).
+The full one is in [docs/CASE-STUDY.md](docs/CASE-STUDY.md):
 
 - [the problem and the results](docs/CASE-STUDY.md#1-the-problem);
 - [how it evolved](docs/CASE-STUDY.md#4-evolution) from a linear pipeline to the current design;
@@ -91,7 +93,7 @@ European Portuguese, because the businesses and the sales team are in
 Portugal. Every identifier in this repository is a placeholder, and the
 businesses in the tests are fictional.
 
-## Repository and setup
+## Repository and tests
 
 ```
 lead-gen/
@@ -109,7 +111,9 @@ node testar-lead-gen.js        # run the test bench
 node build-lead-gen.js         # writes lead-gen.json, ready to import into n8n
 ```
 
-To run it on your own n8n instance:
+## How it's deployed
+
+On a self-hosted n8n, it needs:
 
 1. **Credentials** in n8n: Google Places (header auth, `X-Goog-Api-Key`),
    OpenRouter, and Notion (header auth, `Authorization: Bearer …`).
